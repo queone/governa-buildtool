@@ -90,7 +90,7 @@ func Run(cfg Config, out io.Writer, errOut io.Writer) error {
 	ext := binaryExt()
 	scopes := packageScopes(cfg.Targets)
 
-	fmt.Fprintln(out, color.Yel("==> Check markdown for nested fence issues"))
+	fmt.Fprintln(out, color.Yel5("==> Check markdown for nested fence issues"))
 	findings, err := CheckNestedFences(".")
 	if err != nil {
 		return fmt.Errorf("mdcheck: %w", err)
@@ -101,12 +101,12 @@ func Run(cfg Config, out io.Writer, errOut io.Writer) error {
 	}
 	fmt.Fprintln(out, "    No nested-fence issues found.")
 
-	fmt.Fprintln(out, "\n"+color.Yel("==> Update go.mod to reflect actual dependencies"))
+	fmt.Fprintln(out, "\n"+color.Yel5("==> Update go.mod to reflect actual dependencies"))
 	if err := runStreaming(out, errOut, "go", "mod", "tidy"); err != nil {
 		return err
 	}
 
-	fmt.Fprintln(out, "\n"+color.Yel("==> Format Go code according to standard rules"))
+	fmt.Fprintln(out, "\n"+color.Yel5("==> Format Go code according to standard rules"))
 	if output := runCapturedSoft("go", append([]string{"fmt"}, scopes...)...); strings.TrimSpace(output) == "" {
 		fmt.Fprintln(out, "    No formatting changes needed.")
 	} else {
@@ -115,14 +115,14 @@ func Run(cfg Config, out io.Writer, errOut io.Writer) error {
 	}
 
 	// go fix is advisory — it reports rewrites but does not indicate errors that should block the build.
-	fmt.Fprintln(out, "\n"+color.Yel("==> Automatically fix code for API/language changes"))
+	fmt.Fprintln(out, "\n"+color.Yel5("==> Automatically fix code for API/language changes"))
 	if output := runCapturedSoft("go", append([]string{"fix"}, scopes...)...); strings.TrimSpace(output) == "" {
 		fmt.Fprintln(out, "    No fixes applied.")
 	} else {
 		writeIndented(out, output)
 	}
 
-	fmt.Fprintln(out, "\n"+color.Yel("==> Check code for potential issues"))
+	fmt.Fprintln(out, "\n"+color.Yel5("==> Check code for potential issues"))
 	if output, failed := runCapturedCheck("go", append([]string{"vet"}, scopes...)...); failed {
 		writeIndented(out, output)
 		return fmt.Errorf("go vet found issues")
@@ -140,7 +140,7 @@ func Run(cfg Config, out io.Writer, errOut io.Writer) error {
 	coverFile.Close()
 	defer os.Remove(coverPath)
 
-	fmt.Fprintln(out, "\n"+color.Yel("==> Run tests for all packages in the repository"))
+	fmt.Fprintln(out, "\n"+color.Yel5("==> Run tests for all packages in the repository"))
 	testArgs := []string{"test"}
 	if cfg.Verbose {
 		testArgs = append(testArgs, "-v")
@@ -154,13 +154,13 @@ func Run(cfg Config, out io.Writer, errOut io.Writer) error {
 		return err
 	}
 
-	fmt.Fprintln(out, "\n"+color.Yel("==> Ensure staticcheck is available"))
+	fmt.Fprintln(out, "\n"+color.Yel5("==> Ensure staticcheck is available"))
 	staticcheckPath, err := ensureStaticcheck(out, errOut)
 	if err != nil {
 		return err
 	}
 
-	fmt.Fprintln(out, "\n"+color.Yel("==> Analyze Go code for potential issues"))
+	fmt.Fprintln(out, "\n"+color.Yel5("==> Analyze Go code for potential issues"))
 	if output, failed := runCapturedCheck(staticcheckPath, scopes...); failed {
 		writeIndented(out, output)
 		return fmt.Errorf("staticcheck found issues")
@@ -175,26 +175,26 @@ func Run(cfg Config, out io.Writer, errOut io.Writer) error {
 		return err
 	}
 	if len(cfg.Targets) == 0 {
-		fmt.Fprintln(out, "\n"+color.Yel("==> Building all utilities"))
+		fmt.Fprintln(out, "\n"+color.Yel5("==> Building all utilities"))
 	} else {
-		fmt.Fprintf(out, "\n%s %s\n", color.Yel("==> Building specific utilities:"), color.Grn(strings.Join(cfg.Targets, " ")))
+		fmt.Fprintf(out, "\n%s %s\n", color.Yel5("==> Building specific utilities:"), color.Grn5(strings.Join(cfg.Targets, " ")))
 	}
 	if shouldSkipBinaryInstall(cfg.Targets) {
-		fmt.Fprintf(out, "    %s %s\n", color.Yel("Skipping binary install for"), color.Cya(joinScriptOnlyTargets(cfg.Targets)+"; run them with go run for now."))
+		fmt.Fprintf(out, "    %s %s\n", color.Yel5("Skipping binary install for"), color.Cya5(joinScriptOnlyTargets(cfg.Targets)+"; run them with go run for now."))
 	}
 	if len(targets) > 0 {
-		fmt.Fprintln(out, "\n"+color.Yel("==> Validate programVersion declarations"))
+		fmt.Fprintln(out, "\n"+color.Yel5("==> Validate programVersion declarations"))
 		if err := validateProgramVersions(targets, out); err != nil {
 			return err
 		}
 	}
 	for _, target := range targets {
 		outputPath := filepath.Join(binDir, target+ext)
-		fmt.Fprintf(out, "\n%s %s\n", color.Yel("==> Building and installing"), color.Grn(target))
+		fmt.Fprintf(out, "\n%s %s\n", color.Yel5("==> Building and installing"), color.Grn5(target))
 		if err := runStreaming(out, errOut, "go", "build", "-o", outputPath, "-ldflags", "-s -w", "./cmd/"+target); err != nil {
 			return err
 		}
-		fmt.Fprintf(out, "    installed: %s\n", color.Cya(outputPath))
+		fmt.Fprintf(out, "    installed: %s\n", color.Cya5(outputPath))
 	}
 
 	if cfg.PostInstallHook != nil {
@@ -206,7 +206,7 @@ func Run(cfg Config, out io.Writer, errOut io.Writer) error {
 	if nextTag, ok, err := nextPatchTag(); err != nil {
 		return err
 	} else if ok {
-		fmt.Fprintf(out, "\n%s\n\n    ./build.sh %s %s\n", color.Yel("==> To release, run:"), color.Grn(nextTag), color.Gra("\"<release message>\""))
+		fmt.Fprintf(out, "\n%s\n\n    ./build.sh %s %s\n", color.Yel5("==> To release, run:"), color.Grn5(nextTag), color.Gra5("\"<release message>\""))
 	}
 	return nil
 }
@@ -313,10 +313,10 @@ func binaryExt() string {
 
 func ensureStaticcheck(out io.Writer, errOut io.Writer) (string, error) {
 	if path, err := exec.LookPath("staticcheck"); err == nil {
-		fmt.Fprintf(out, "    found: %s\n", color.Cya(path))
+		fmt.Fprintf(out, "    found: %s\n", color.Cya5(path))
 		return path, nil
 	}
-	fmt.Fprintf(out, "    installing: %s\n", color.Grn("honnef.co/go/tools/cmd/staticcheck@latest"))
+	fmt.Fprintf(out, "    installing: %s\n", color.Grn5("honnef.co/go/tools/cmd/staticcheck@latest"))
 	if err := runStreaming(out, errOut, "go", "install", "honnef.co/go/tools/cmd/staticcheck@latest"); err != nil {
 		return "", err
 	}
@@ -363,14 +363,14 @@ func printCoverageSummary(out io.Writer, coverPath, modulePath string) error {
 		return err
 	}
 	coverageText := fmt.Sprintf("domain coverage: %.1f%%", domainPct)
-	styledCoverage := color.Red(coverageText)
+	styledCoverage := color.Red5(coverageText)
 	switch {
 	case domainPct >= 75:
-		styledCoverage = color.Grn(coverageText)
+		styledCoverage = color.Grn5(coverageText)
 	case domainPct >= 50:
-		styledCoverage = color.Yel(coverageText)
+		styledCoverage = color.Yel5(coverageText)
 	}
-	fmt.Fprintf(out, "    %s  %s\n", styledCoverage, color.Gra("(total: "+total+")"))
+	fmt.Fprintf(out, "    %s  %s\n", styledCoverage, color.Gra5("(total: "+total+")"))
 	return nil
 }
 
@@ -481,7 +481,7 @@ func validateProgramVersions(targets []string, out io.Writer) error {
 		if ver == "" {
 			return fmt.Errorf("cmd/%s/main.go must declare a non-empty const programVersion string literal", target)
 		}
-		fmt.Fprintf(out, "    %s: programVersion = %s\n", color.Cya("cmd/"+target), color.Grn(fmt.Sprintf("%q", ver)))
+		fmt.Fprintf(out, "    %s: programVersion = %s\n", color.Cya5("cmd/"+target), color.Grn5(fmt.Sprintf("%q", ver)))
 	}
 	return nil
 }
@@ -512,7 +512,7 @@ func runCapturedCheck(name string, args ...string) (string, bool) {
 
 func runStreaming(out io.Writer, errOut io.Writer, name string, args ...string) error {
 	command := strings.TrimSpace(name + " " + strings.Join(args, " "))
-	fmt.Fprintf(out, "    %s\n", color.Grn(command))
+	fmt.Fprintf(out, "    %s\n", color.Grn5(command))
 	cmd := exec.Command(name, args...)
 	cmd.Stdout = out
 	cmd.Stderr = errOut
@@ -694,7 +694,7 @@ func writeIndented(out io.Writer, text string) {
 	for scanner.Scan() {
 		line := scanner.Text()
 		if strings.Contains(line, "FAIL") {
-			line = color.Red(line)
+			line = color.Red5(line)
 		}
 		fmt.Fprintf(out, "    %s\n", line)
 	}
