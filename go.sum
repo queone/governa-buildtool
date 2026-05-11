@@ -1,2 +1,4 @@
 github.com/queone/governa-color v1.0.1 h1:lZwKfLjVBjcywVRmAVsGAKTv5HIY/P+fEjORHzGKczM=
 github.com/queone/governa-color v1.0.1/go.mod h1:hQRFFa1Ko11gJl8iUe2EzFG75cfWBCSSb+aoTUAy9UY=
+github.com/queone/governa-reltool v1.1.0 h1:nT1sy36wwRsarLfq/By2+eUNbhoMZ3fm804M4bOR690=
+github.com/queone/governa-reltool v1.1.0/go.mod h1:njI8U7RLV+jmLClGtOgkxZ4ixOtE8/pQE/IHJGn2U0I=
