@@ -180,7 +180,7 @@ func Run(cfg Config, out io.Writer, errOut io.Writer) error {
 		fmt.Fprintf(out, "\n%s %s\n", color.Yel7("==> Building specific utilities:"), color.Grn3(strings.Join(cfg.Targets, " ")))
 	}
 	if shouldSkipBinaryInstall(cfg.Targets) {
-		fmt.Fprintf(out, "    %s %s\n", color.Yel7("Skipping binary install for"), color.Cya3(joinScriptOnlyTargets(cfg.Targets)+"; run them with go run for now."))
+		fmt.Fprintf(out, "    %s %s\n", color.Yel7("Skipping binary install for"), color.Cya4(joinScriptOnlyTargets(cfg.Targets)+"; run them with go run for now."))
 	}
 	if len(targets) > 0 {
 		fmt.Fprintln(out, "\n"+color.Yel7("==> Validate programVersion declarations"))
@@ -194,7 +194,7 @@ func Run(cfg Config, out io.Writer, errOut io.Writer) error {
 		if err := runStreaming(out, errOut, "go", "build", "-o", outputPath, "-ldflags", "-s -w", "./cmd/"+target); err != nil {
 			return err
 		}
-		fmt.Fprintf(out, "    installed: %s\n", color.Cya3(outputPath))
+		fmt.Fprintf(out, "    installed: %s\n", color.Cya4(outputPath))
 	}
 
 	if cfg.PostInstallHook != nil {
@@ -313,7 +313,7 @@ func binaryExt() string {
 
 func ensureStaticcheck(out io.Writer, errOut io.Writer) (string, error) {
 	if path, err := exec.LookPath("staticcheck"); err == nil {
-		fmt.Fprintf(out, "    found: %s\n", color.Cya3(path))
+		fmt.Fprintf(out, "    found: %s\n", color.Cya4(path))
 		return path, nil
 	}
 	fmt.Fprintf(out, "    installing: %s\n", color.Grn3("honnef.co/go/tools/cmd/staticcheck@latest"))
@@ -481,7 +481,7 @@ func validateProgramVersions(targets []string, out io.Writer) error {
 		if ver == "" {
 			return fmt.Errorf("cmd/%s/main.go must declare a non-empty const programVersion string literal", target)
 		}
-		fmt.Fprintf(out, "    %s: programVersion = %s\n", color.Cya3("cmd/"+target), color.Grn3(fmt.Sprintf("%q", ver)))
+		fmt.Fprintf(out, "    %s: programVersion = %s\n", color.Cya4("cmd/"+target), color.Grn3(fmt.Sprintf("%q", ver)))
 	}
 	return nil
 }
